@@ -1,4 +1,5 @@
 因为使用这个项目，自己的翻译分享出来，分享给大家，如果错误和遗漏，希望大家在Issues提醒指正。🙏
+原文档地址：https://github.com/louischatriot/nedb
 
 <img src="http://i.imgur.com/9O1xHFb.png" style="width: 25%; height: 25%; float: left;">
 
@@ -71,14 +72,14 @@ You can use NeDB as an in-memory only datastore or as a persistent datastore. On
 * `onload` (optional): if you use autoloading, this is the handler called after the `loadDatabase`. It takes one `error` argument. If you use autoloading without specifying this handler, and an error happens during load, an error will be thrown.
 * `onload`：如果使用了自动加载，`loadDatabase`之后会被调用。需要参数`error`，如果不指定这个回调函数，自动加载过程中发生错误就会抛出异常。
 * `afterSerialization` (optional): hook you can use to transform data after it was serialized and before it is written to disk. Can be used for example to encrypt data before writing database to disk. This function takes a string as parameter (one line of an NeDB data file) and outputs the transformed string, **which must absolutely not contain a `\n` character** (or data will be lost).
-* `afterSerialization`：可以使用这个钩子将数据序列化并写入磁盘。可以在写入磁盘之前将数据加密。此函数将一个字符串作为参数（NeDB数据文件的一行），并且需要返回一个字符串，**字符串结尾不要包含\n字符**（否则数据会丢失）。
+* `afterSerialization`：可以使用这个钩子将数据序列化并写入磁盘。可以在写入磁盘之前将数据加密。此函数将一个字符串作为参数（NeDB数据文件的一行），并且需要返回一个字符串，**字符串结尾不要包含`\n`字符**（否则数据会丢失）。
 * `beforeDeserialization` (optional): inverse of `afterSerialization`. Make sure to include both and not just one or you risk data loss. For the same reason, make sure both functions are inverses of one another. Some failsafe mechanisms are in place to prevent data loss if you misuse the serialization hooks: NeDB checks that never one is declared without the other, and checks that they are reverse of one another by testing on random strings of various lengths. In addition, if too much data is detected as corrupt, NeDB will refuse to start as it could mean you're not using the deserialization hook corresponding to the serialization hook used before (see below).
+* `beforeDeserialization`：`afterSerialization`的逆向操作，要确保该操作没有任何风险。出于安全考虑，要确保两个函数操作是逆向的。为了防止数据丢失有必要使用一些安全机制，不要滥用这个钩子函数。NeDB从来不会用随机字符串测试你的算法是否是逆向的。另外，NeDB如果检测到坏数据将会拒绝启动，因为有可能您无法逆向以前的加密数据（见下文）。
 * `corruptAlertThreshold` (optional): between 0 and 1, defaults to 10%. NeDB will refuse to start if more than this percentage of the datafile is corrupt. 0 means you don't tolerate any corruption, 1 means you don't care.
-* `compareStrings` (optional): function compareStrings(a, b) compares
-  strings a and b and return -1, 0 or 1. If specified, it overrides
-default string comparison which is not well adapted to non-US characters
-in particular accented letters. Native `localCompare` will most of the
+* `corruptAlertThreshold`：介于0和1之间，缺省为10%。如果超过这个比例的数据被损坏，NeDB将会拒绝启动。0意味着你不允许任何坏数据，1意味着你不介意任何坏数据。
+* `compareStrings` (optional): function compareStrings(a, b) compares strings a and b and return -1, 0 or 1. If specified, it overrides default string comparison which is not well adapted to non-US characters in particular accented letters. Native `localCompare` will most of the
 time be the right choice
+* `compareStrings`：函数compareStrings(a, b)将会比较字符串a和b并且返回-1、0、1。如果指定这个参数，他将会覆盖默认的字符串比较。默认的比较不太适合非英文字符。尽量使用适合自己语言的字符串比较函数。
 * `nodeWebkitAppName` (optional, **DEPRECATED**): if you are using NeDB from whithin a Node Webkit app, specify its name (the same one you use in the `package.json`) in this field and the `filename` will be relative to the directory Node Webkit uses to store the rest of the application's data (local storage etc.). It works on Linux, OS X and Windows. Now that you can use `require('nw.gui').App.dataPath` in Node Webkit to get the path to the data directory for your application, you should not use this option anymore and it will be removed.
 
 If you use a persistent datastore without the `autoload` option, you need to call `loadDatabase` manually.
