@@ -67,8 +67,11 @@ You can use NeDB as an in-memory only datastore or as a persistent datastore. On
 * `timestampData` (optional, defaults to `false`): timestamp the insertion and last update of all documents, with the fields `createdAt` and `updatedAt`. User-specified values override automatic generation, usually useful for testing.
 * `timestampData`（缺省false）插入和更新时间戳到所有文档，属性`createdAt`和`updatedAt`，如果用指定了值，将会自动被覆盖，这个功能一般用于测试。
 * `autoload` (optional, defaults to `false`): if used, the database will automatically be loaded from the datafile upon creation (you don't need to call `loadDatabase`). Any command issued before load is finished is buffered and will be executed when load is done.
+* `autoload`（缺省false）：如果使用这个参数，数据库将自动从数据库文件加载数据（不需要调用`loadDatebase`函数）。将在任何命令发出前进行加载。
 * `onload` (optional): if you use autoloading, this is the handler called after the `loadDatabase`. It takes one `error` argument. If you use autoloading without specifying this handler, and an error happens during load, an error will be thrown.
+* `onload`：如果使用了自动加载，`loadDatabase`之后会被调用。需要参数`error`，如果不指定这个回调函数，自动加载过程中发生错误就会抛出异常。
 * `afterSerialization` (optional): hook you can use to transform data after it was serialized and before it is written to disk. Can be used for example to encrypt data before writing database to disk. This function takes a string as parameter (one line of an NeDB data file) and outputs the transformed string, **which must absolutely not contain a `\n` character** (or data will be lost).
+* `afterSerialization`：可以使用这个钩子将数据序列化并写入磁盘。可以在写入磁盘之前将数据加密。此函数将一个字符串作为参数（NeDB数据文件的一行），并且需要返回一个字符串，**字符串结尾不要包含\n字符**（否则数据会丢失）。
 * `beforeDeserialization` (optional): inverse of `afterSerialization`. Make sure to include both and not just one or you risk data loss. For the same reason, make sure both functions are inverses of one another. Some failsafe mechanisms are in place to prevent data loss if you misuse the serialization hooks: NeDB checks that never one is declared without the other, and checks that they are reverse of one another by testing on random strings of various lengths. In addition, if too much data is detected as corrupt, NeDB will refuse to start as it could mean you're not using the deserialization hook corresponding to the serialization hook used before (see below).
 * `corruptAlertThreshold` (optional): between 0 and 1, defaults to 10%. NeDB will refuse to start if more than this percentage of the datafile is corrupt. 0 means you don't tolerate any corruption, 1 means you don't care.
 * `compareStrings` (optional): function compareStrings(a, b) compares
@@ -738,3 +741,5 @@ You don't have time? You can support NeDB by sending bitcoins to this address: 1
 ## License 
 
 See [License](LICENSE)
+
+
