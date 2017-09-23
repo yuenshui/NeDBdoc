@@ -61,13 +61,11 @@ You can use NeDB as an in-memory only datastore or as a persistent datastore. On
 可以吧NeDB作为内存数据库，当然也可以持久化存储。一个数据存储区相当于MongoDB的一个集合（collection）。
 
 * `filename` (optional): path to the file where the data is persisted. If left blank, the datastore is automatically considered in-memory only. It cannot end with a `~` which is used in the temporary files NeDB uses to perform crash-safe writes.
-
-`filename`（可选项），数据持久化存储的文件路径。如果为空就只是会作为内存数据库使用。不要吧这个文件当做程序崩溃向NeDB写入的临时文件。
+* `filename`（可选项），数据持久化存储的文件路径。如果为空就只是会作为内存数据库使用。不要吧这个文件当做程序崩溃向NeDB写入的临时文件。
 * `inMemoryOnly` (optional, defaults to `false`): as the name implies.
-
-`inMemoryOnly`（缺省为false）：顾名思义，是否只作为内存数据库使用。
-
+* `inMemoryOnly`（缺省为false）：顾名思义，是否只作为内存数据库使用。
 * `timestampData` (optional, defaults to `false`): timestamp the insertion and last update of all documents, with the fields `createdAt` and `updatedAt`. User-specified values override automatic generation, usually useful for testing.
+* `timestampData`（缺省false）插入和更新时间戳到所有文档，属性`createdAt`和`updatedAt`，如果用指定了值，将会自动被覆盖，这个功能一般用于测试。
 * `autoload` (optional, defaults to `false`): if used, the database will automatically be loaded from the datafile upon creation (you don't need to call `loadDatabase`). Any command issued before load is finished is buffered and will be executed when load is done.
 * `onload` (optional): if you use autoloading, this is the handler called after the `loadDatabase`. It takes one `error` argument. If you use autoloading without specifying this handler, and an error happens during load, an error will be thrown.
 * `afterSerialization` (optional): hook you can use to transform data after it was serialized and before it is written to disk. Can be used for example to encrypt data before writing database to disk. This function takes a string as parameter (one line of an NeDB data file) and outputs the transformed string, **which must absolutely not contain a `\n` character** (or data will be lost).
