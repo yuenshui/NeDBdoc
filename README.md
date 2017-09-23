@@ -352,6 +352,8 @@ db.find({ planet: { $regex: /ar/, $nin: ['Jupiter', 'Earth'] } }, function (err,
 #### Array fields
 When a field in a document is an array, NeDB first tries to see if the query value is an array to perform an exact match, then whether there is an array-specific comparison function (for now there is only `$size` and `$elemMatch`) being used. If not, the query is treated as a query on every element and there is a match if at least one element matches.  
 
+当一个文档中的字段是一个数组时，NeDB首先尝试查看值是否是一个数组来执行完全匹配，然后查看是否使用数组特定的比较函数（目前只支持`$size`和`$elemMatch`）。
+
 * `$size`: match on the size of the array
 * `$elemMatch`: matches if at least one array element matches the query entirely
 
