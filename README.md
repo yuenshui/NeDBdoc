@@ -5,10 +5,12 @@
 ## The JavaScript Database
 
 **Embedded persistent or in memory database for Node.js, nw.js, Electron and browsers, 100% JavaScript, no binary dependency**. API is a subset of MongoDB's and it's <a href="#speed">plenty fast</a>.
+为Node.js、nw.js、Electron、浏览器设计，100%的Javascript程序可使用的嵌入式或内存数据库，不依赖二进制库。数据库API是MongoDB的一个子集，运行速度非常快。
 
 **IMPORTANT NOTE**: Please don't submit issues for questions regarding your code. Only actual bugs or feature requests will be answered, all others will be closed without comment. Also, please follow the <a href="#bug-reporting-guidelines">bug reporting guidelines</a> and check the <a href="https://github.com/louischatriot/nedb/wiki/Change-log" target="_blank">change log</a> before submitting an already fixed bug :)
+重要提示：不要提交使用过程中的代码问题，只有数据库Bug或希望增加的功能才会回复。所有其他的评论都将关闭。另外提交bug前先看已经提交过的bug，然后再提交。
 
-## Support NeDB development
+## Support NeDB development（赞助NeDB开发）
 
 <img src="http://i.imgur.com/mpwi4lf.jpg">
 
@@ -21,6 +23,7 @@ Bitcoin address: 1dDZLnWpBbodPiN8sizzYrgaz5iahFyb1
 
 ## Installation, tests
 Module name on npm and bower is `nedb`.
+在npm上的模块名字是nedb
 
 ```
 npm install nedb --save    # Put latest version in your package.json
@@ -30,6 +33,7 @@ bower install nedb         # For the browser versions, which will be in browser-
 
 ## API
 It is a subset of MongoDB's API (the most used operations).
+这是MongoDB的API子集，最常用的一部分操作
 
 * <a href="#creatingloading-a-database">Creating/loading a database</a>
 * <a href="#persistence">Persistence</a>
@@ -49,9 +53,13 @@ It is a subset of MongoDB's API (the most used operations).
 
 ### Creating/loading a database
 You can use NeDB as an in-memory only datastore or as a persistent datastore. One datastore is the equivalent of a MongoDB collection. The constructor is used as follows `new Datastore(options)` where `options` is an object with the following fields:
+可以吧NeDB作为内存数据库，当然也可以持久化存储。一个数据存储区相当于MongoDB的一个集合（collection）。
 
 * `filename` (optional): path to the file where the data is persisted. If left blank, the datastore is automatically considered in-memory only. It cannot end with a `~` which is used in the temporary files NeDB uses to perform crash-safe writes.
+`filename`（可选项），数据持久化存储的文件路径。如果为空就只是会作为内存数据库使用。不要吧这个文件当做程序崩溃向NeDB写入的临时文件。
 * `inMemoryOnly` (optional, defaults to `false`): as the name implies.
+`inMemoryOnly`（缺省为false）：顾名思义，是否只作为内存数据库使用。
+
 * `timestampData` (optional, defaults to `false`): timestamp the insertion and last update of all documents, with the fields `createdAt` and `updatedAt`. User-specified values override automatic generation, usually useful for testing.
 * `autoload` (optional, defaults to `false`): if used, the database will automatically be loaded from the datafile upon creation (you don't need to call `loadDatabase`). Any command issued before load is finished is buffered and will be executed when load is done.
 * `onload` (optional): if you use autoloading, this is the handler called after the `loadDatabase`. It takes one `error` argument. If you use autoloading without specifying this handler, and an error happens during load, an error will be thrown.
