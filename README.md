@@ -156,19 +156,31 @@ You can also set automatic compaction at regular intervals with `yourDatabase.pe
 
 Keep in mind that compaction takes a bit of time (not too much: 130ms for 50k records on a typical development machine) and no other operation can happen when it does, so most projects actually don't need to use it.
 
+切忌压缩是需要时间（一般的开发机无其他干扰，50k数据需要130毫秒）的，这时间内不可以执行其他操作，大部分项目不需要用着个功能。
+
 Compaction will also immediately remove any documents whose data line has become corrupted, assuming that the total percentage of all corrupted documents in that database still falls below the specified `corruptAlertThreshold` option's value.
+
+压缩还将删除任何坏文档，假如数据库的坏文档比例低于`corruptAlertThreshold`选项的值。
 
 Durability works similarly to major databases: compaction forces the OS to physically flush data to disk, while appends to the data file do not (the OS is responsible for flushing the data). That guarantees that a server crash can never cause complete data loss, while preserving performance. The worst that can happen is a crash between two syncs, causing a loss of all data between the two syncs. Usually syncs are 30 seconds appart so that's at most 30 seconds of data. <a href="http://oldblog.antirez.com/post/redis-persistence-demystified.html" target="_blank">This post by Antirez on Redis persistence</a> explains this in more details, NeDB being very close to Redis AOF persistence with `appendfsync` option set to `no`.
 
+持久性和其他主流数据库类似，压缩操作强制操作系统将数据保存到物理磁盘，而追加数据不会如此（操作系统负责刷新数据）。这样既能保证数据的完整性，又能保持较高性能。可能发生的最坏事情是两次同步之间发生崩溃，造成两次同步之间的数据操作丢失。通常30秒同步一次数据，最差丢30秒的数据。Antirez在<a href="http://oldblog.antirez.com/post/redis-persistence-demystified.html" target="_blank">Redis数据持久化存储</a>文章里详细的解释了这一点。NeDB非常接近Redis的AOF持久化选项`appendfsync`设置为`no`。
 
-### Inserting documents
+
+### Inserting documents（添加文档）
 The native types are `String`, `Number`, `Boolean`, `Date` and `null`. You can also use
 arrays and subdocuments (objects). If a field is `undefined`, it will not be saved (this is different from 
 MongoDB which transforms `undefined` in `null`, something I find counter-intuitive).
 
+支持的类型是`String`、`Number`、`Boolean`、`Date`和`null`。还可以试用数组和子文档，如果字段未定义不会保存（这一点与MongoDB是不同的）。
+
 If the document does not contain an `_id` field, NeDB will automatically generated one for you (a 16-characters alphanumerical string). The `_id` of a document, once set, cannot be modified.
 
+如果文档没有设置`_id`，NeDB将会自动生成（长16的字符串）。文档`_id`一旦设置无法修改。
+
 Field names cannot begin by '$' or contain a '.'.
+
+字段名不可以'$'开头，也不可以包含'.'。
 
 ```javascript
 var doc = { hello: 'world'
@@ -189,6 +201,8 @@ db.insert(doc, function (err, newDoc) {   // Callback is optional
 
 You can also bulk-insert an array of documents. This operation is atomic, meaning that if one insert fails due to a unique constraint being violated, all changes are rolled back.
 
+可以将数组批量插入数据库，这样操作是原子操作，如果有一个不合规范，其他操作都将回滚。
+
 ```javascript
 db.insert([{ a: 5 }, { a: 42 }], function (err, newDocs) {
   // Two documents were inserted in the database
@@ -202,21 +216,32 @@ db.insert([{ a: 5 }, { a: 42 }, { a: 5 }], function (err) {
 });
 ```
 
-### Finding documents
+### Finding documents （查找文档）
 Use `find` to look for multiple documents matching you query, or `findOne` to look for one specific document. You can select documents based on field equality or use comparison operators (`$lt`, `$lte`, `$gt`, `$gte`, `$in`, `$nin`, `$ne`). You can also use logical operators `$or`, `$and`, `$not` and `$where`. See below for the syntax.
+
+使用`find`查找和匹配多个文档，或者用`findOne`读取一个文档。可以用比较符号筛选文档(`$lt`、`$lte`、`$gt`、`$gte`、`$in`、`$nin`、`$ne`)。还可以用逻辑运算符`$or`、`$and`、`$not`和`$where`，请看下面的语法。
 
 You can use regular expressions in two ways: in basic querying in place of a string, or with the `$regex` operator.
 
+两种方式可以使用正则，基本查询中或`$regex`操作符中。
+
 You can sort and paginate results using the cursor API (see below).
+
+可以使用游标API对结果进行排序和分页，详见下文。
 
 You can use standard projections to restrict the fields to appear in the results (see below).
 
-#### Basic querying
+可以使用投影的方式限制字段出现在结果中，详见下文。
+
+#### Basic querying （基本查询）
 Basic querying means are looking for documents whose fields match the ones you specify. You can use regular expression to match strings.
 You can use the dot notation to navigate inside nested documents, arrays, arrays of subdocuments and to match a specific element of an array.
 
+基本查询是查找和条件匹配的文档。可以用正则来匹配字符串。可以用`.`号来引用嵌套文档、数组、子文档数组，并匹配指定的元素。
+
 ```javascript
 // Let's say our datastore contains the following collection
+// 假设我们的数据库包含下面的数据集合
 // { _id: 'id1', planet: 'Mars', system: 'solar', inhabited: false, satellites: ['Phobos', 'Deimos'] }
 // { _id: 'id2', planet: 'Earth', system: 'solar', inhabited: true, humans: { genders: 2, eyes: true } }
 // { _id: 'id3', planet: 'Jupiter', system: 'solar', inhabited: false }
@@ -224,27 +249,32 @@ You can use the dot notation to navigate inside nested documents, arrays, arrays
 // { _id: 'id5', completeData: { planets: [ { name: 'Earth', number: 3 }, { name: 'Mars', number: 2 }, { name: 'Pluton', number: 9 } ] } }
 
 // Finding all planets in the solar system
+// 查找太阳系中的所有行星
 db.find({ system: 'solar' }, function (err, docs) {
   // docs is an array containing documents Mars, Earth, Jupiter
   // If no document is found, docs is equal to []
 });
 
 // Finding all planets whose name contain the substring 'ar' using a regular expression
+// 使用正则查找名称中包含“ar”的所有行星
 db.find({ planet: /ar/ }, function (err, docs) {
   // docs contains Mars and Earth
 });
 
 // Finding all inhabited planets in the solar system
+// 查找太阳系中所有有人的行星
 db.find({ system: 'solar', inhabited: true }, function (err, docs) {
   // docs is an array containing document Earth only
 });
 
 // Use the dot-notation to match fields in subdocuments
+// 使用`.`符号匹配子文档中的字段
 db.find({ "humans.genders": 2 }, function (err, docs) {
   // docs contains Earth
 });
 
 // Use the dot-notation to navigate arrays of subdocuments
+// 使用`.`符号浏览子文档中的数组
 db.find({ "completeData.planets.name": "Mars" }, function (err, docs) {
   // docs contains document 5
 });
@@ -260,6 +290,7 @@ db.find({ "completeData.planets.0.name": "Earth" }, function (err, docs) {
 
 
 // You can also deep-compare objects. Don't confuse this with dot-notation!
+// 也可以深入的比较对象，不要和`.`符号混淆
 db.find({ humans: { genders: 2 } }, function (err, docs) {
   // docs is empty, because { genders: 2 } is not equal to { genders: 2, eyes: true }
 });
@@ -275,15 +306,21 @@ db.findOne({ _id: 'id1' }, function (err, doc) {
 });
 ```
 
-#### Operators ($lt, $lte, $gt, $gte, $in, $nin, $ne, $exists, $regex)
+#### Operators ($lt, $lte, $gt, $gte, $in, $nin, $ne, $exists, $regex)（操作符）
 The syntax is `{ field: { $op: value } }` where `$op` is any comparison operator:  
 
 * `$lt`, `$lte`: less than, less than or equal
+* `$lt`, `$lte`: 小于、小于等于
 * `$gt`, `$gte`: greater than, greater than or equal
+* `$gt`, `$gte`: 大于、大于等于
 * `$in`: member of. `value` must be an array of values
+* `$in`: 成员。`value`必须是数组
 * `$ne`, `$nin`: not equal, not a member of
+* `$ne`, `$nin`: 不等于、不是成员
 * `$exists`: checks whether the document posses the property `field`. `value` should be true or false
+* `$exists`: 检查文档是否有指定的字段属性`field`.`value`，返回true或false
 * `$regex`: checks whether a string is matched by the regular expression. Contrary to MongoDB, the use of `$options` with `$regex` is not supported, because it doesn't give you more power than regex flags. Basic queries are more readable so only use the `$regex` operator when you need to use another operator with it (see example below)
+* `$regex`: 检查字符串是否与正则表达式匹配，与MongoDB相反，不支持`$options`，因为它不会比正则表达式更强。基本查询可读性更好，最好在确实需要正则是时候才使用（详情如下）
 
 ```javascript
 // $lt, $lte, $gt and $gte work on numbers and strings
