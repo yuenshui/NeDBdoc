@@ -81,36 +81,48 @@ You can use NeDB as an in-memory only datastore or as a persistent datastore. On
 time be the right choice
 * `compareStrings`：函数compareStrings(a, b)将会比较字符串a和b并且返回-1、0、1。如果指定这个参数，他将会覆盖默认的字符串比较。默认的比较不太适合非英文字符。尽量使用适合自己语言的字符串比较函数。
 * `nodeWebkitAppName` (optional, **DEPRECATED**): if you are using NeDB from whithin a Node Webkit app, specify its name (the same one you use in the `package.json`) in this field and the `filename` will be relative to the directory Node Webkit uses to store the rest of the application's data (local storage etc.). It works on Linux, OS X and Windows. Now that you can use `require('nw.gui').App.dataPath` in Node Webkit to get the path to the data directory for your application, you should not use this option anymore and it will be removed.
+* `nodeWebkitAppName`（该参数已弃用）
 
 If you use a persistent datastore without the `autoload` option, you need to call `loadDatabase` manually.
 This function fetches the data from datafile and prepares the database. **Don't forget it!** If you use a
 persistent datastore, no command (insert, find, update, remove) will be executed before `loadDatabase`
 is called, so make sure to call it yourself or use the `autoload` option.
 
+如果不使用`autoload`选项，需要手动调用`loadDatabase`函数来实现持久化存储。这个函数将数据写入数据库文件。**切记切记！**如果不调用这个函数，数据的任何操作（插入、查找、更新、删除）都不会保存，所以一定要确保使用了`autoload`选项选项或者手动调用了`loadDatabase`函数。
+
 Also, if `loadDatabase` fails, all commands registered to the executor afterwards will not be executed. They will be registered and executed, in sequence, only after a successful `loadDatabase`.
+
+另外，如果`loadDatabase`函数调用失败，那么后面的命令都不会被执行。只有在成功调用`loadDatabase`函数之后才可以执行。
 
 ```javascript
 // Type 1: In-memory only datastore (no need to load the database)
+// 第一种类型，内存性数据库（不需要加载数据库）
 var Datastore = require('nedb')
   , db = new Datastore();
 
 
 // Type 2: Persistent datastore with manual loading
+// 第二种类型，手动加载持久化数据库
 var Datastore = require('nedb')
   , db = new Datastore({ filename: 'path/to/datafile' });
-db.loadDatabase(function (err) {    // Callback is optional
+db.loadDatabase(function (err) {    // Callback is optional 回调函数是可选的
   // Now commands will be executed
+  // 数据库写入后执行这里
 });
 
 
 // Type 3: Persistent datastore with automatic loading
+// 第三种类型，自动加载的持久化存储数据库
 var Datastore = require('nedb')
   , db = new Datastore({ filename: 'path/to/datafile', autoload: true });
 // You can issue commands right away
+// 这里可以立即执行数据库操作
 
 
 // Type 4: Persistent datastore for a Node Webkit app called 'nwtest'
 // For example on Linux, the datafile will be ~/.config/nwtest/nedb-data/something.db
+// 第四种类型：Node Webkit的起名为‘nwtest’的持久化应用
+// 比如在Linux上，数据库文件将会写入 ~/.config/nwtest/nedb-data/something.db
 var Datastore = require('nedb')
   , path = require('path')
   , db = new Datastore({ filename: path.join(require('nw.gui').App.dataPath, 'something.db') });
@@ -118,21 +130,29 @@ var Datastore = require('nedb')
 
 // Of course you can create multiple datastores if you need several
 // collections. In this case it's usually a good idea to use autoload for all collections.
+// 如果需要，可以创建多个数据存储集合，这种情况下建议使用自动保存
 db = {};
 db.users = new Datastore('path/to/users.db');
 db.robots = new Datastore('path/to/robots.db');
 
 // You need to load each database (here we do it asynchronously)
+// 这里需要加载每一个数据库（这里是异步方式）
 db.users.loadDatabase();
 db.robots.loadDatabase();
 ```
 
-### Persistence
+### Persistence （续篇）
 Under the hood, NeDB's persistence uses an append-only format, meaning that all updates and deletes actually result in lines added at the end of the datafile, for performance reasons. The database is automatically compacted (i.e. put back in the one-line-per-document format) every time you load each database within your application.
+
+该存储引擎处于性能考虑，NeDB的持久化存储仅使用追加方式，这样会导致所有的更新和删除实际上只是在末尾添加行。每次应用程序加载数据库时，数据库将自动压缩（单行文档格式）。
 
 You can manually call the compaction function with `yourDatabase.persistence.compactDatafile` which takes no argument. It queues a compaction of the datafile in the executor, to be executed sequentially after all pending operations. The datastore will fire a `compaction.done` event once compaction is finished.
 
+可以不带参数的调用`yourDatabase.persistence.compactDatafile`压缩数据库。他将在执行器对数据文件的压缩进行排队，等所有操作处理完再执行。如果压缩完，将会出发数据库的`compaction.done`事件。
+
 You can also set automatic compaction at regular intervals with `yourDatabase.persistence.setAutocompactionInterval(interval)`, `interval` in milliseconds (a minimum of 5s is enforced), and stop automatic compaction with `yourDatabase.persistence.stopAutocompaction()`.
+
+可以设置`yourDatabase.persistence.setAutocompactionInterval(interval)`定时自动压缩，`interval`以毫秒为单位（最短5秒调用一次），并且要停止使用`yourDatabase.persistence.stopAutocompaction()`的自动压缩。
 
 Keep in mind that compaction takes a bit of time (not too much: 130ms for 50k records on a typical development machine) and no other operation can happen when it does, so most projects actually don't need to use it.
 
